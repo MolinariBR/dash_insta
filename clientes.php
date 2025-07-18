@@ -10,21 +10,23 @@ function getDB() {
 
 // Cadastro de novo cliente
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['novo_cliente'])) {
-    $nome = $_POST['nome'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $empresa = $_POST['empresa'] ?? '';
-    $cpf = $_POST['cpf'] ?? '';
-    $cnpj = $_POST['cnpj'] ?? '';
-    $nome_projeto = $_POST['nome_projeto'] ?? '';
-    $contato = $_POST['contato'] ?? '';
+    $nome = htmlspecialchars(trim($_POST['nome'] ?? ''));
+    $email = filter_var(trim($_POST['email'] ?? ''), FILTER_VALIDATE_EMAIL);
+    $empresa = htmlspecialchars(trim($_POST['empresa'] ?? ''));
+    $cpf = htmlspecialchars(trim($_POST['cpf'] ?? ''));
+    $cnpj = htmlspecialchars(trim($_POST['cnpj'] ?? ''));
+    $nome_projeto = htmlspecialchars(trim($_POST['nome_projeto'] ?? ''));
+    $contato = htmlspecialchars(trim($_POST['contato'] ?? ''));
 
     if ($nome && $email) {
         $db = getDB();
         $stmt = $db->prepare('INSERT INTO clientes (nome, email, empresa, cpf, cnpj, nome_projeto, contato) VALUES (?, ?, ?, ?, ?, ?, ?)');
         $stmt->execute([$nome, $email, $empresa, $cpf, $cnpj, $nome_projeto, $contato]);
+        // Log de auditoria
+        file_put_contents('logs/auditoria.log', date('c') . " | CADASTRO_CLIENTE | $nome | $email\n", FILE_APPEND);
         $msg = 'Cliente cadastrado com sucesso!';
     } else {
-        $msg = 'Nome e e-mail são obrigatórios.';
+        $msg = 'Nome e e-mail válidos são obrigatórios.';
     }
 }
 

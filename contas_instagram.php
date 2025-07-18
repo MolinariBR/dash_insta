@@ -14,9 +14,18 @@ $clientes = $db->query('SELECT id, nome, email FROM clientes ORDER BY nome')->fe
 // Excluir conta
 if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     $id = (int)$_GET['delete'];
+    // Buscar dados para log antes de excluir
+    $stmt = $db->prepare('SELECT username, cliente_id FROM contas_instagram WHERE id = ?');
+    $stmt->execute([$id]);
+    $conta = $stmt->fetch(PDO::FETCH_ASSOC);
     $stmt = $db->prepare('DELETE FROM contas_instagram WHERE id = ?');
     $stmt->execute([$id]);
     $msg = 'Conta do Instagram excluída com sucesso!';
+    // Log de auditoria
+    if ($conta) {
+        $usuario_logado = $_SESSION['usuario'] ?? 'N/A';
+        file_put_contents('logs/auditoria.log', date('c') . " | EXCLUSAO_CONTA | $usuario_logado | {$conta['cliente_id']} | {$conta['username']}\n", FILE_APPEND);
+    }
 }
 
 // Editar conta (carregar dados)
@@ -30,11 +39,15 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
 
 // Atualizar conta
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['atualizar_conta'])) {
-    $id = $_POST['conta_id'] ?? '';
-    $username = $_POST['username'] ?? '';
-    $status = $_POST['status'] ?? 'ativa';
-    $senha = $_POST['senha'] ?? '';
+    $id = trim($_POST['conta_id'] ?? '');
+    $username = htmlspecialchars(trim($_POST['username'] ?? ''));
+    $status = in_array($_POST['status'] ?? '', ['ativa','inativa']) ? $_POST['status'] : 'ativa';
+    $senha = trim($_POST['senha'] ?? '');
     if ($id && $username) {
+        // Buscar cliente_id para log
+        $stmt = $db->prepare('SELECT cliente_id FROM contas_instagram WHERE id = ?');
+        $stmt->execute([$id]);
+        $conta = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($senha) {
             $senha_hash = password_hash($senha, PASSWORD_BCRYPT);
             $stmt = $db->prepare('UPDATE contas_instagram SET username = ?, senha = ?, status = ? WHERE id = ?');
@@ -45,20 +58,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['atualizar_conta'])) {
         }
         $msg = 'Conta do Instagram atualizada com sucesso!';
         $edit_data = null;
+        // Log de auditoria
+        $usuario_logado = $_SESSION['usuario'] ?? 'N/A';
+        $cliente_id = $conta['cliente_id'] ?? 'N/A';
+        file_put_contents('logs/auditoria.log', date('c') . " | EDICAO_CONTA | $usuario_logado | $cliente_id | $username\n", FILE_APPEND);
     }
 }
 
 // Cadastro de nova conta do Instagram
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nova_conta'])) {
-    $cliente_id = $_POST['cliente_id'] ?? '';
-    $username = $_POST['username'] ?? '';
-    $senha = $_POST['senha'] ?? '';
-    $status = $_POST['status'] ?? 'ativa';
+    $cliente_id = trim($_POST['cliente_id'] ?? '');
+    $username = htmlspecialchars(trim($_POST['username'] ?? ''));
+    $senha = trim($_POST['senha'] ?? '');
+    $status = in_array($_POST['status'] ?? '', ['ativa','inativa']) ? $_POST['status'] : 'ativa';
     if ($cliente_id && $username && $senha) {
         $senha_hash = password_hash($senha, PASSWORD_BCRYPT);
         $stmt = $db->prepare('INSERT INTO contas_instagram (cliente_id, username, senha, status) VALUES (?, ?, ?, ?)');
         $stmt->execute([$cliente_id, $username, $senha_hash, $status]);
         $msg = 'Conta do Instagram cadastrada com sucesso!';
+        // Log de auditoria
+        $usuario_logado = $_SESSION['usuario'] ?? 'N/A';
+        file_put_contents('logs/auditoria.log', date('c') . " | CADASTRO_CONTA | $usuario_logado | $cliente_id | $username\n", FILE_APPEND);
     } else {
         $msg = 'Cliente, usuário e senha são obrigatórios.';
     }

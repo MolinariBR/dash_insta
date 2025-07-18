@@ -17,7 +17,9 @@ define('DATA_PATH', BOT_PATH . '/data');
 define('CONFIG_PATH', BOT_PATH . '/config');
 
 // Configurações de segurança
-define('DASHBOARD_PASSWORD', 'fatima2025!');
+// Para máxima segurança, use um hash gerado por password_hash('sua_senha', PASSWORD_BCRYPT)
+define('DASHBOARD_PASSWORD', 'fatima2025!'); // Texto plano legado
+// define('DASHBOARD_PASSWORD_HASH', '$2y$10$...'); // Exemplo de hash bcrypt
 define('SESSION_TIMEOUT', 3600); // 1 hora
 
 // Configurações do bot (valores seguros para produção)
@@ -70,9 +72,20 @@ function isLoggedIn() {
  * Função para autenticar usuário
  */
 function authenticate($password) {
+    // Se hash definido, prioriza autenticação por hash
+    if (defined('DASHBOARD_PASSWORD_HASH') && DASHBOARD_PASSWORD_HASH) {
+        if (password_verify($password, DASHBOARD_PASSWORD_HASH)) {
+            $_SESSION['logged_in'] = true;
+            $_SESSION['login_time'] = time();
+            $_SESSION['usuario'] = 'admin';
+            return true;
+        }
+    }
+    // Compatibilidade com texto plano legado
     if ($password === DASHBOARD_PASSWORD) {
         $_SESSION['logged_in'] = true;
         $_SESSION['login_time'] = time();
+        $_SESSION['usuario'] = 'admin';
         return true;
     }
     return false;

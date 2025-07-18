@@ -1,12 +1,10 @@
 <?php
-require_once '../config.php';
-
+require_once __DIR__ . '/../config.php';
 header('Content-Type: application/json');
 
-// Verifica se está logado
 if (!isLoggedIn()) {
     http_response_code(401);
-    echo json_encode(['error' => 'Não autorizado']);
+    echo json_encode(['success' => false, 'message' => 'Não autorizado']);
     exit;
 }
 
@@ -33,23 +31,29 @@ try {
                 $lines = file($logFile);
                 $lines = array_slice(array_reverse($lines), 0, $limit);
                 foreach ($lines as $line) {
-                    $logs[] = parsLogLine(trim($line));
+                    $logs[] = ['mensagem' => trim($line)];
                 }
             }
         }
     } else {
-        $logs = readLogFile($type, $limit);
+        // Retorna logs globais do tipo
+        $logFile = '../logs/' . $type . '.log';
+        if (file_exists($logFile)) {
+            $lines = file($logFile);
+            $lines = array_slice(array_reverse($lines), 0, $limit);
+            foreach ($lines as $line) {
+                $logs[] = ['mensagem' => trim($line)];
+            }
+        }
     }
-    
     echo json_encode([
         'success' => true,
         'type' => $type,
         'count' => count($logs),
         'logs' => $logs
     ]);
-    
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'Erro ao ler logs: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Erro ao ler logs: ' . $e->getMessage()]);
 }
 ?>

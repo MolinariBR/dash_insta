@@ -1,8 +1,21 @@
 <?php
 require_once 'config.php';
+require_once __DIR__ . '/includes/auth_core.php';
 
+if (!function_exists('processLogin')) {
+function processLogin() {
+    global $error;
+    $password = $_POST['password'] ?? '';
+    $result = processLoginCore($password);
+    $error = $result['error'];
+    if ($result['success'] && php_sapi_name() !== 'cli') {
+        header('Location: index.php');
+        exit;
+    }
+}
+}
 // Se já está logado, redireciona para dashboard
-if (isLoggedIn()) {
+if (isLoggedIn() && php_sapi_name() !== 'cli') {
     header('Location: index.php');
     exit;
 }
@@ -11,37 +24,7 @@ $error = '';
 
 // Processa login
 if ($_POST) {
-    // Controle de brute force por sessão
-    if (!isset($_SESSION['login_attempts'])) {
-        $_SESSION['login_attempts'] = 0;
-        $_SESSION['login_blocked_until'] = 0;
-    }
-    $max_attempts = 5;
-    $block_time = 600; // 10 minutos
-    $now = time();
-    if ($_SESSION['login_blocked_until'] > $now) {
-        $error = 'Muitas tentativas. Tente novamente em alguns minutos.';
-    } else {
-        $password = $_POST['password'] ?? '';
-        if (authenticate($password)) {
-            $_SESSION['login_attempts'] = 0;
-            $_SESSION['login_blocked_until'] = 0;
-            // Log de sucesso
-            file_put_contents('logs/auditoria.log', date('c') . " | LOGIN_SUCESSO | IP: {$_SERVER['REMOTE_ADDR']}\n", FILE_APPEND);
-            header('Location: index.php');
-            exit;
-        } else {
-            $_SESSION['login_attempts']++;
-            // Log de falha
-            file_put_contents('logs/auditoria.log', date('c') . " | LOGIN_FALHA | IP: {$_SERVER['REMOTE_ADDR']} | Tentativa: {$_SESSION['login_attempts']}\n", FILE_APPEND);
-            if ($_SESSION['login_attempts'] >= $max_attempts) {
-                $_SESSION['login_blocked_until'] = $now + $block_time;
-                $error = 'Muitas tentativas. Tente novamente em alguns minutos.';
-            } else {
-                $error = 'Senha incorreta!';
-            }
-        }
-    }
+    processLogin();
 }
 ?>
 <!DOCTYPE html>

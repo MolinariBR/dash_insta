@@ -71,6 +71,7 @@ function isLoggedIn() {
 /**
  * Função para autenticar usuário
  */
+if (!function_exists('authenticate')) {
 function authenticate($password) {
     // Se hash definido, prioriza autenticação por hash
     if (defined('DASHBOARD_PASSWORD_HASH') && DASHBOARD_PASSWORD_HASH) {
@@ -89,6 +90,7 @@ function authenticate($password) {
         return true;
     }
     return false;
+}
 }
 
 /**

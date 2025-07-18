@@ -1,5 +1,6 @@
 <?php
 require_once 'config.php';
+require_once __DIR__ . '/../includes/settings_core.php';
 
 // Verifica se está logado
 if (!isLoggedIn()) {
@@ -84,26 +85,9 @@ if ($_POST && isset($_POST['action'])) {
                     'verificar_ratio_followers' => $check_ratio
                 ]
             ];
-            // Salva arquivo
-            $configFile = CONFIG_PATH . '/settings.json';
-            $saved = file_put_contents($configFile, json_encode($newSettings, JSON_PRETTY_PRINT));
-            // Log de auditoria
-            $usuario_logado = $_SESSION['usuario'] ?? 'N/A';
-            $detalhes = 'Limites: ' . json_encode($newSettings['limites']);
-            file_put_contents('logs/auditoria.log', date('c') . " | EDICAO_CONFIG_API | $usuario_logado | $detalhes\n", FILE_APPEND);
-            if ($saved !== false) {
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'Configurações salvas com sucesso!',
-                    'timestamp' => date('Y-m-d H:i:s')
-                ]);
-            } else {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Erro ao salvar arquivo de configuração'
-                ]);
-            }
-            
+            // Salva arquivo e log
+            $result = saveSettingsCore($newSettings);
+            echo json_encode($result);
         } catch (Exception $e) {
             echo json_encode([
                 'success' => false,
@@ -131,7 +115,7 @@ if ($_POST && isset($_POST['action'])) {
     } else {
         echo json_encode([
             'success' => false,
-            'message' => 'Ação inválida'
+            'message' => 'Nenhuma ação especificada'
         ]);
     }
 } else {

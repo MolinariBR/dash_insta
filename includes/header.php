@@ -41,6 +41,7 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
                     <li><a href="index.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
                     <li><a href="logs.php"><i class="fas fa-file-alt"></i> Logs</a></li>
                     <li><a href="config.php"><i class="fas fa-cog"></i> Configurações</a></li>
+                    <li><a href="metricas.php"><i class="fas fa-chart-line text-blue-600"></i> Métricas</a></li>
                     <li><a href="stats.php"><i class="fas fa-chart-bar"></i> Estatísticas</a></li>
                 </ul>
             </div>
@@ -64,13 +65,18 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
                     </a>
                 </li>
                 <li>
-                    <a href="stats.php" class="<?= $currentPage === 'stats' ? 'active' : '' ?>">
-                        <i class="fas fa-chart-bar"></i> Estatísticas
+                    <a href="settings.php" class="<?= $currentPage === 'settings' ? 'active' : '' ?>">
+                        <i class="fas fa-cog"></i> Configurações
                     </a>
                 </li>
                 <li>
-                    <a href="settings.php" class="<?= $currentPage === 'settings' ? 'active' : '' ?>">
-                        <i class="fas fa-cog"></i> Configurações
+                    <a href="metricas.php" class="<?= $currentPage === 'metricas' ? 'active text-blue-600 font-bold' : '' ?>">
+                        <i class="fas fa-chart-line text-blue-600"></i> Métricas
+                    </a>
+                </li>
+                <li>
+                    <a href="stats.php" class="<?= $currentPage === 'stats' ? 'active' : '' ?>">
+                        <i class="fas fa-chart-bar"></i> Estatísticas
                     </a>
                 </li>
             </ul>

@@ -378,6 +378,55 @@ Histórias que tocam o coração das crianças! 🌸</textarea>
             </div>
         </div>
 
+        <!-- Integrações de Métricas (Facebook, Google Ads, Analytics) -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">
+                    <i class="fas fa-key text-blue-600 mr-2"></i>
+                    Integrações de Métricas
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold">Facebook Access Token</span></label>
+                        <input type="text" name="facebook_access_token" value="<?php echo isset($currentSettings['facebook_access_token']) ? htmlspecialchars($currentSettings['facebook_access_token']) : ''; ?>" class="input input-bordered" placeholder="Ex: EAAB..." autocomplete="off">
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold">Facebook Ad Account ID</span></label>
+                        <input type="text" name="facebook_ad_account_id" value="<?php echo isset($currentSettings['facebook_ad_account_id']) ? htmlspecialchars($currentSettings['facebook_ad_account_id']) : ''; ?>" class="input input-bordered" placeholder="Ex: act_1234567890" autocomplete="off">
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold">Google Developer Token</span></label>
+                        <input type="text" name="google_developer_token" value="<?php echo isset($currentSettings['google_developer_token']) ? htmlspecialchars($currentSettings['google_developer_token']) : ''; ?>" class="input input-bordered" placeholder="Ex: 1234567890" autocomplete="off">
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold">Google Client ID</span></label>
+                        <input type="text" name="google_client_id" value="<?php echo isset($currentSettings['google_client_id']) ? htmlspecialchars($currentSettings['google_client_id']) : ''; ?>" class="input input-bordered" placeholder="Ex: xxxxx.apps.googleusercontent.com" autocomplete="off">
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold">Google Client Secret</span></label>
+                        <input type="text" name="google_client_secret" value="<?php echo isset($currentSettings['google_client_secret']) ? htmlspecialchars($currentSettings['google_client_secret']) : ''; ?>" class="input input-bordered" placeholder="Ex: ABCDEFGHIJKLMNOP" autocomplete="off">
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold">Google Refresh Token</span></label>
+                        <input type="text" name="google_refresh_token" value="<?php echo isset($currentSettings['google_refresh_token']) ? htmlspecialchars($currentSettings['google_refresh_token']) : ''; ?>" class="input input-bordered" placeholder="Ex: 1//0g..." autocomplete="off">
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold">Google Customer ID</span></label>
+                        <input type="text" name="google_customer_id" value="<?php echo isset($currentSettings['google_customer_id']) ? htmlspecialchars($currentSettings['google_customer_id']) : ''; ?>" class="input input-bordered" placeholder="Ex: 1234567890" autocomplete="off">
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold">Google Analytics Credentials Path</span></label>
+                        <input type="text" name="google_credentials_path" value="<?php echo isset($currentSettings['google_credentials_path']) ? htmlspecialchars($currentSettings['google_credentials_path']) : ''; ?>" class="input input-bordered" placeholder="Ex: /caminho/para/credentials.json" autocomplete="off">
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold">Google Analytics View ID</span></label>
+                        <input type="text" name="google_analytics_view_id" value="<?php echo isset($currentSettings['google_analytics_view_id']) ? htmlspecialchars($currentSettings['google_analytics_view_id']) : ''; ?>" class="input input-bordered" placeholder="Ex: 123456789" autocomplete="off">
+                    </div>
+                </div>
+                <div class="text-xs text-gray-500 mt-2">Essas credenciais são necessárias para exibir métricas reais no painel. Mantenha-as seguras!</div>
+            </div>
+        </div>
+
         <!-- Botões de Ação -->
         <div class="card bg-base-100 shadow-xl">
             <div class="card-body">

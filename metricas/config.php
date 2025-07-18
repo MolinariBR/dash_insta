@@ -1,0 +1,19 @@
+<?php
+// Configurações de integração de métricas
+
+// Facebook Ads
+$FACEBOOK_ACCESS_TOKEN = 'SEU_FACEBOOK_ACCESS_TOKEN';
+$FACEBOOK_AD_ACCOUNT_ID = 'act_xxxxxxxx';
+
+// Google Ads
+$GOOGLE_DEVELOPER_TOKEN = 'SEU_GOOGLE_DEVELOPER_TOKEN';
+$GOOGLE_CLIENT_ID = 'SEU_GOOGLE_CLIENT_ID';
+$GOOGLE_CLIENT_SECRET = 'SEU_GOOGLE_CLIENT_SECRET';
+$GOOGLE_REFRESH_TOKEN = 'SEU_GOOGLE_REFRESH_TOKEN';
+$GOOGLE_CUSTOMER_ID = 'SEU_GOOGLE_CUSTOMER_ID';
+
+// Google Analytics
+$GOOGLE_CREDENTIALS_PATH = __DIR__ . '/google-credentials.json'; // Caminho para o arquivo de credenciais
+$GOOGLE_ANALYTICS_VIEW_ID = 'SEU_VIEW_ID';
+
+?>

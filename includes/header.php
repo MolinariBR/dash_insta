@@ -43,6 +43,16 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
                     <li><a href="config.php"><i class="fas fa-cog"></i> Configurações</a></li>
                     <li><a href="metricas.php"><i class="fas fa-chart-line text-blue-600"></i> Métricas</a></li>
                     <li><a href="stats.php"><i class="fas fa-chart-bar"></i> Estatísticas</a></li>
+                    <li>
+                        <a href="clientes.php" class="<?= $currentPage === 'clientes' ? 'active' : '' ?>">
+                            <i class="fas fa-users"></i> Clientes
+                        </a>
+                    </li>
+                    <li>
+                        <a href="contas_instagram.php" class="<?= $currentPage === 'contas_instagram' ? 'active' : '' ?>">
+                            <i class="fab fa-instagram"></i> Contas Instagram
+                        </a>
+                    </li>
                 </ul>
             </div>
             <a href="index.php" class="btn btn-ghost text-xl">
@@ -77,6 +87,16 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
                 <li>
                     <a href="stats.php" class="<?= $currentPage === 'stats' ? 'active' : '' ?>">
                         <i class="fas fa-chart-bar"></i> Estatísticas
+                    </a>
+                </li>
+                <li>
+                    <a href="clientes.php" class="<?= $currentPage === 'clientes' ? 'active' : '' ?>">
+                        <i class="fas fa-users"></i> Clientes
+                    </a>
+                </li>
+                <li>
+                    <a href="contas_instagram.php" class="<?= $currentPage === 'contas_instagram' ? 'active' : '' ?>">
+                        <i class="fab fa-instagram"></i> Contas Instagram
                     </a>
                 </li>
             </ul>

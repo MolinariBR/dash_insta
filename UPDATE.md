@@ -1,121 +1,83 @@
-# Atualização do Dashboard para Gerenciamento de até 30 Contas do Instagram
-
-Este guia detalha todos os passos necessários para transformar o dashboard atual, que gerencia uma única conta, em um sistema multi-contas capaz de gerenciar até 30 perfis do Instagram.
+# UPDATE.md — Histórico e Guia de Atualização do dash_insta
 
 ---
 
-## 1. Modelagem de Dados
+## Histórico de Atualizações
 
-### 1.1. Crie a tabela de contas no banco de dados
-Adicione uma tabela para armazenar as credenciais e informações das contas:
+- **[2025-07-16]** Estrutura de testes automatizados adicionada (PHPUnit, pasta tests/)
+- **[2025-07-16]** Guia detalhado para migração multi-conta (ver seção abaixo)
+- **[2025-07-16]** Organização e versionamento de dependências, scripts e arquivos auxiliares
+- **[2025-07-16]** Criação e atualização dos arquivos de documentação: README.md, DOC.md, UPINSTA.md
+- **[2025-07-16]** Nova modelagem de dados: cadastro de clientes e associação de contas do Instagram a clientes
 
+---
+
+## Guia de Atualização para Multi-Conta e Multi-Cliente
+
+### 1. Modelagem de Dados
+- Crie as tabelas principais no SQLite:
 ```sql
+CREATE TABLE clientes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nome TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  empresa TEXT,
+  cpf TEXT,
+  cnpj TEXT,
+  nome_projeto TEXT,
+  contato TEXT,
+  data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE contas_instagram (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  username VARCHAR(100) NOT NULL,
-  senha VARCHAR(255) NOT NULL, -- Armazene criptografada
-  status VARCHAR(20) DEFAULT 'ativa',
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  cliente_id INTEGER NOT NULL,
+  username TEXT NOT NULL,
+  senha TEXT NOT NULL,
+  status TEXT DEFAULT 'ativa',
   data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP,
-  ultima_atividade DATETIME
+  ultima_atividade DATETIME,
+  FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE
 );
 ```
+- Cada cliente pode ter várias contas do Instagram associadas.
+- O cadastro de clientes é fundamental para controle individualizado, relatórios e gestão de projetos.
+- Consulte o DOC.md (seção 5) para detalhes de banco e possíveis extensões.
 
----
-
-## 2. Refatoração das Configurações
-
-### 2.1. Remova variáveis de ambiente fixas para usuário/senha
-- Elimine IG_USERNAME e IG_PASSWORD do .env e do código.
-- As credenciais devem ser buscadas no banco de dados conforme a conta selecionada.
-
-### 2.2. Sessões separadas
+### 2. Refatoração de Configurações
+- Remova variáveis de ambiente fixas para usuário/senha.
+- Adapte o backend para buscar credenciais no banco conforme a conta selecionada.
 - Cada conta deve ter seu próprio arquivo de sessão (ex: `session_{username}.json`).
 
----
+### 3. Interface do Dashboard
+- Implemente tela de gerenciamento de clientes e suas contas (listar, adicionar, editar, remover, selecionar ativa).
+- Todas as ações do dashboard devem ser referentes ao cliente e à conta escolhidos.
 
-## 3. Interface do Dashboard
+### 4. Backend PHP
+- Adapte funções para receber o identificador do cliente e da conta.
+- Separe logs e métricas por conta e por cliente (ex: `logs/{cliente_id}/{username}/`).
 
-### 3.1. Tela de Gerenciamento de Contas
-- Crie uma página para:
-  - Listar contas cadastradas (até 30).
-  - Adicionar nova conta (formulário de usuário/senha).
-  - Editar/remover contas.
-  - Selecionar conta ativa.
-
-### 3.2. Fluxo de Seleção
-- Ao selecionar uma conta, todas as ações do dashboard (logs, métricas, comandos) devem ser referentes à conta escolhida.
-
----
-
-## 4. Backend PHP
-
-### 4.1. Adapte funções para múltiplas contas
-- Todas as funções que interagem com o bot, logs ou métricas devem receber o identificador da conta (id ou username).
-- Exemplo: `startBot($conta_id)`, `getBotStats($conta_id)`.
-
-### 4.2. Logs e métricas separados
-- Armazene arquivos de log e métricas em subpastas por conta (ex: `logs/{username}/`).
-
----
-
-## 5. Bot Python
-
-### 5.1. Inicialização multi-conta
-- Permita inicializar múltiplas instâncias do cliente Instagram, cada uma com suas credenciais e sessão.
+### 5. Bot Python
+- Permita múltiplas instâncias do cliente Instagram, cada uma com suas credenciais e sessão.
 - Scripts devem receber o username/id da conta como parâmetro.
-- Exemplo de chamada:
-  ```bash
-  python3 main.py --conta fatima.escritora
-  ```
 
-### 5.2. Sessões separadas
-- Cada instância deve usar seu próprio arquivo de sessão.
+### 6. Segurança
+- Armazene senhas com hash seguro (bcrypt ou superior).
+- Implemente limite de até 30 contas cadastradas por cliente, se necessário.
 
----
+### 7. Testes e Validação
+- Crie testes para garantir isolamento entre clientes e contas.
+- Teste login, logs, métricas e comandos para múltiplos clientes e contas simultâneas.
 
-## 6. Segurança
-
-### 6.1. Armazenamento seguro de senhas
-- Utilize hash seguro (ex: bcrypt) para armazenar senhas no banco.
-- Nunca armazene senhas em texto puro.
-
-### 6.2. Limite de contas
-- Implemente validação para não permitir mais de 30 contas cadastradas.
+### 8. Documentação
+- Mantenha README.md, DOC.md, UPDATE.md e UPINSTA.md atualizados conforme alterações.
 
 ---
 
-## 7. Ajustes Gerais
-
-### 7.1. Adapte o frontend para alternar entre contas
-- Exiba claramente qual conta está ativa.
-- Permita alternar rapidamente entre contas.
-
-### 7.2. Testes
-- Crie testes para garantir que cada conta opera de forma isolada.
-- Teste o login, logs, métricas e comandos para múltiplas contas simultâneas.
+## Referências
+- Para detalhes técnicos e fluxos, consulte o DOC.md.
+- Para instalação e uso, veja o README.md.
 
 ---
 
-## 8. Migração de Dados (se necessário)
-- Se já houver dados de uma conta, migre para o novo formato/tabela.
-- Atualize scripts e arquivos antigos para a nova estrutura.
-
----
-
-## 9. Documentação
-- Atualize o README e demais documentos para refletir o novo funcionamento multi-conta.
-
----
-
-## 10. Checklist Final
-- [ ] Tabela de contas criada
-- [ ] Backend adaptado para múltiplas contas
-- [ ] Bot Python aceitando múltiplas instâncias
-- [ ] Interface de gerenciamento de contas implementada
-- [ ] Segurança revisada
-- [ ] Testes realizados
-- [ ] Documentação atualizada
-
----
-
-Siga cada etapa cuidadosamente para garantir uma transição suave e segura para o novo modelo de gerenciamento de múltiplas contas do Instagram. 
+> Siga cada etapa cuidadosamente para garantir uma transição suave e segura para o novo modelo de gerenciamento de múltiplos clientes e contas do Instagram. 

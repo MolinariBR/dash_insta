@@ -25,15 +25,25 @@ $conta_id = isset($_GET['conta_id']) ? (int)$_GET['conta_id'] : ($contas[0]['id'
         </select>
     </form>
 </div>
-
+<?php
 $dashboardConfig = function_exists('getDashboardConfig') ? getDashboardConfig() : ['demo_mode' => false, 'show_badges' => false, 'show_alert' => false];
+$campanhas = $campanhas ?? [['cpc' => 0, 'vendas' => 0, 'resultado' => 0]];
+$LIMITES = $LIMITES ?? [];
 $alertas = definir_alertas($campanhas, $LIMITES);
-
 // Facebook Ads
+$FACEBOOK_ACCESS_TOKEN = $FACEBOOK_ACCESS_TOKEN ?? '';
+$FACEBOOK_AD_ACCOUNT_ID = $FACEBOOK_AD_ACCOUNT_ID ?? '';
 $facebookMetrics = getFacebookAdsMetrics($FACEBOOK_ACCESS_TOKEN, $FACEBOOK_AD_ACCOUNT_ID);
 // Google Ads
+$GOOGLE_DEVELOPER_TOKEN = $GOOGLE_DEVELOPER_TOKEN ?? '';
+$GOOGLE_CLIENT_ID = $GOOGLE_CLIENT_ID ?? '';
+$GOOGLE_CLIENT_SECRET = $GOOGLE_CLIENT_SECRET ?? '';
+$GOOGLE_REFRESH_TOKEN = $GOOGLE_REFRESH_TOKEN ?? '';
+$GOOGLE_CUSTOMER_ID = $GOOGLE_CUSTOMER_ID ?? '';
 $googleAdsMetrics = getGoogleAdsMetrics($GOOGLE_DEVELOPER_TOKEN, $GOOGLE_CLIENT_ID, $GOOGLE_CLIENT_SECRET, $GOOGLE_REFRESH_TOKEN, $GOOGLE_CUSTOMER_ID);
 // Google Analytics
+$GOOGLE_CREDENTIALS_PATH = $GOOGLE_CREDENTIALS_PATH ?? '';
+$GOOGLE_ANALYTICS_VIEW_ID = $GOOGLE_ANALYTICS_VIEW_ID ?? '';
 $googleAnalyticsMetrics = getGoogleAnalyticsMetrics($GOOGLE_CREDENTIALS_PATH, $GOOGLE_ANALYTICS_VIEW_ID);
 ?>
 <div class="container mx-auto px-4 py-6">

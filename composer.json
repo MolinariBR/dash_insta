@@ -2,5 +2,8 @@
     "require": {
         "google/apiclient": "^2.18",
         "googleads/google-ads-php": "^29.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0"
     }
 }

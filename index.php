@@ -6,7 +6,27 @@ require_once 'includes/header.php';
 // Obtém estatísticas do bot
 $stats = getBotStats();
 $isRunning = isBotRunning();
+
+// Buscar contas do Instagram disponíveis
+function getDB() {
+    $db = new PDO('sqlite:data/database.db');
+    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    return $db;
+}
+$db = getDB();
+$contas = $db->query('SELECT ci.id, ci.username, c.nome as cliente_nome FROM contas_instagram ci JOIN clientes c ON ci.cliente_id = c.id ORDER BY c.nome, ci.username')->fetchAll(PDO::FETCH_ASSOC);
+$conta_id = isset($_GET['conta_id']) ? (int)$_GET['conta_id'] : (isset($_POST['conta_id']) ? (int)$_POST['conta_id'] : ($contas[0]['id'] ?? null));
 ?>
+<div class="mb-4">
+    <form method="get" class="flex flex-col md:flex-row items-center gap-2">
+        <label class="font-semibold">Conta do Instagram:</label>
+        <select name="conta_id" onchange="this.form.submit()" class="border p-2 rounded">
+            <?php foreach ($contas as $c): ?>
+                <option value="<?= $c['id'] ?>" <?= $conta_id == $c['id'] ? 'selected' : '' ?>>@<?= htmlspecialchars($c['username']) ?> (<?= htmlspecialchars($c['cliente_nome']) ?>)</option>
+            <?php endforeach; ?>
+        </select>
+    </form>
+</div>
 
 <div class="container mx-auto px-4 py-6">
     <!-- Header do Dashboard -->
@@ -451,8 +471,10 @@ function showLogs(type) {
 
 // Função para controlar bot
 function controlBot(action) {
+    const contaId = document.querySelector('select[name=conta_id]').value;
     const formData = new FormData();
     formData.append('action', action);
+    formData.append('conta_id', contaId);
     
     fetch('api/control.php', {
         method: 'POST',
@@ -506,6 +528,7 @@ function openTestModal(type) {
 
 // Função para executar teste
 function executeTest() {
+    const contaId = document.querySelector('select[name=conta_id]').value;
     const formData = new FormData();
     
     if (currentTestType === 'follow') {
@@ -516,6 +539,7 @@ function executeTest() {
         }
         formData.append('action', 'test_follow');
         formData.append('username', username);
+        formData.append('conta_id', contaId);
     } else if (currentTestType === 'comment') {
         const hashtag = document.getElementById('test-hashtag').value;
         if (!hashtag) {
@@ -524,6 +548,7 @@ function executeTest() {
         }
         formData.append('action', 'test_comment');
         formData.append('hashtag', hashtag);
+        formData.append('conta_id', contaId);
     }
     
     fetch('api/control.php', {

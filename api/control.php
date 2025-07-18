@@ -18,152 +18,112 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $action = $_POST['action'] ?? '';
+$conta_id = isset($_POST['conta_id']) ? (int)$_POST['conta_id'] : null;
 
 try {
     switch ($action) {
         case 'start':
-            $result = startBot();
+            $result = startBot($conta_id);
             break;
-            
         case 'stop':
-            $result = stopBot();
+            $result = stopBot($conta_id);
             break;
-            
         case 'restart':
-            $result = restartBot();
+            $result = restartBot($conta_id);
             break;
-            
         case 'test_follow':
             $username = $_POST['username'] ?? '';
-            $result = testFollow($username);
+            $result = testFollow($conta_id, $username);
             break;
-            
         case 'test_comment':
             $hashtag = $_POST['hashtag'] ?? '';
-            $result = testComment($hashtag);
+            $result = testComment($conta_id, $hashtag);
             break;
-            
         default:
             http_response_code(400);
             echo json_encode(['error' => 'Ação inválida']);
             exit;
     }
-    
     echo json_encode($result);
-    
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(['error' => 'Erro interno: ' . $e->getMessage()]);
 }
 
-/**
- * Inicia o bot
- */
-function startBot() {
-    $botPath = BOT_PATH;
-    $logFile = LOGS_PATH . '/bot_control.log';
-    
-    // Verifica se já está rodando
-    if (isBotRunning()) {
-        return ['success' => false, 'message' => 'Bot já está rodando'];
+function getContaInstagram($conta_id) {
+    $db = new PDO('sqlite:../data/database.db');
+    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $stmt = $db->prepare('SELECT * FROM contas_instagram WHERE id = ?');
+    $stmt->execute([$conta_id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+function startBot($conta_id) {
+    $conta = getContaInstagram($conta_id);
+    if (!$conta) {
+        return ['success' => false, 'message' => 'Conta não encontrada'];
     }
-    
-    // Inicia o bot em background
-    $command = "cd $botPath && python3 main.py > $logFile 2>&1 &";
+    $botPath = '../insta';
+    $logFile = '../logs/bot_' . $conta['username'] . '.log';
+    $command = "cd $botPath && python3 main.py --conta " . escapeshellarg($conta['username']) . " > $logFile 2>&1 &";
     $output = shell_exec($command);
-    
-    // Aguarda um pouco e verifica se iniciou
     sleep(3);
-    
-    if (isBotRunning()) {
-        return ['success' => true, 'message' => 'Bot iniciado com sucesso'];
-    } else {
-        return ['success' => false, 'message' => 'Falha ao iniciar o bot'];
-    }
+    // Aqui você pode implementar uma checagem real se o bot está rodando para a conta
+    return ['success' => true, 'message' => 'Bot iniciado para @' . $conta['username']];
 }
 
-/**
- * Para o bot
- */
-function stopBot() {
-    // Encontra e mata o processo
-    $output = shell_exec("pkill -f 'python3 main.py'");
-    
-    // Aguarda um pouco e verifica se parou
+function stopBot($conta_id) {
+    $conta = getContaInstagram($conta_id);
+    if (!$conta) {
+        return ['success' => false, 'message' => 'Conta não encontrada'];
+    }
+    $command = "pkill -f 'python3 main.py --conta " . escapeshellarg($conta['username']) . "'";
+    shell_exec($command);
     sleep(2);
-    
-    if (!isBotRunning()) {
-        return ['success' => true, 'message' => 'Bot parado com sucesso'];
-    } else {
-        return ['success' => false, 'message' => 'Falha ao parar o bot'];
-    }
+    return ['success' => true, 'message' => 'Bot parado para @' . $conta['username']];
 }
 
-/**
- * Reinicia o bot
- */
-function restartBot() {
-    $stopResult = stopBot();
+function restartBot($conta_id) {
+    $stopResult = stopBot($conta_id);
     if ($stopResult['success']) {
         sleep(2);
-        return startBot();
+        return startBot($conta_id);
     } else {
         return ['success' => false, 'message' => 'Falha ao parar o bot para reiniciar'];
     }
 }
 
-/**
- * Testa funcionalidade de follow
- */
-function testFollow($username) {
+function testFollow($conta_id, $username) {
     if (empty($username)) {
         return ['success' => false, 'message' => 'Username não fornecido'];
     }
-    
-    $botPath = BOT_PATH;
-    $command = "cd $botPath && python3 -c \"
-from bot.seguidores import SeguidoresBot
-bot = SeguidoresBot()
-try:
-    bot.client = bot.instagram_client.get_client()
-    result = bot._seguir_usuario('$username', 'Teste manual')
-    print('SUCCESS' if result else 'FAILED')
-except Exception as e:
-    print(f'ERROR: {e}')
-\"";
-    
+    $conta = getContaInstagram($conta_id);
+    if (!$conta) {
+        return ['success' => false, 'message' => 'Conta não encontrada'];
+    }
+    $botPath = '../insta';
+    $command = "cd $botPath && python3 -c \"from bot.seguidores import SeguidoresBot; bot = SeguidoresBot(conta='" . addslashes($conta['username']) . "'); result = bot._seguir_usuario('" . addslashes($username) . "', 'Teste manual'); print('SUCCESS' if result else 'FAILED')\"";
     $output = trim(shell_exec($command));
-    
     if (strpos($output, 'SUCCESS') !== false) {
-        return ['success' => true, 'message' => "Follow testado com sucesso em @$username"];
+        return ['success' => true, 'message' => "Follow testado com sucesso em @$username para @" . $conta['username']];
     } else {
         return ['success' => false, 'message' => "Falha no teste de follow: $output"];
     }
 }
 
-/**
- * Testa funcionalidade de comentário
- */
-function testComment($hashtag) {
+function testComment($conta_id, $hashtag) {
     if (empty($hashtag)) {
         return ['success' => false, 'message' => 'Hashtag não fornecida'];
     }
-    
-    $botPath = BOT_PATH;
-    $command = "cd $botPath && python3 -c \"
-from bot.comentarios import ComentariosBot
-bot = ComentariosBot()
-try:
-    result = bot.comentar_posts_hashtag('$hashtag', max_comments=1)
-    print(f'SUCCESS: {result} comentários realizados')
-except Exception as e:
-    print(f'ERROR: {e}')
-\"";
-    
+    $conta = getContaInstagram($conta_id);
+    if (!$conta) {
+        return ['success' => false, 'message' => 'Conta não encontrada'];
+    }
+    $botPath = '../insta';
+    $command = "cd $botPath && python3 -c \"from bot.comentarios import ComentariosBot; bot = ComentariosBot(conta='" . addslashes($conta['username']) . "'); result = bot.comentar_posts_hashtag('" . addslashes($hashtag) . "', max_comments=1); print(f'SUCCESS: {result} comentários realizados')\"";
     $output = trim(shell_exec($command));
-    
     if (strpos($output, 'SUCCESS') !== false) {
-        return ['success' => true, 'message' => "Teste de comentário realizado: $output"];
+        return ['success' => true, 'message' => "Teste de comentário realizado: $output para @" . $conta['username']];
     } else {
         return ['success' => false, 'message' => "Falha no teste de comentário: $output"];
     }

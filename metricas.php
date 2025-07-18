@@ -5,6 +5,27 @@ require_once __DIR__ . '/metricas/integracoes.php';
 $pageTitle = 'Métricas e Alertas';
 require_once __DIR__ . '/includes/header.php';
 
+// Buscar contas do Instagram disponíveis
+function getDB() {
+    $db = new PDO('sqlite:data/database.db');
+    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    return $db;
+}
+$db = getDB();
+$contas = $db->query('SELECT ci.id, ci.username, c.nome as cliente_nome FROM contas_instagram ci JOIN clientes c ON ci.cliente_id = c.id ORDER BY c.nome, ci.username')->fetchAll(PDO::FETCH_ASSOC);
+$conta_id = isset($_GET['conta_id']) ? (int)$_GET['conta_id'] : ($contas[0]['id'] ?? null);
+?>
+<div class="mb-4">
+    <form method="get" class="flex flex-col md:flex-row items-center gap-2">
+        <label class="font-semibold">Conta do Instagram:</label>
+        <select name="conta_id" onchange="this.form.submit()" class="border p-2 rounded">
+            <?php foreach ($contas as $c): ?>
+                <option value="<?= $c['id'] ?>" <?= $conta_id == $c['id'] ? 'selected' : '' ?>>@<?= htmlspecialchars($c['username']) ?> (<?= htmlspecialchars($c['cliente_nome']) ?>)</option>
+            <?php endforeach; ?>
+        </select>
+    </form>
+</div>
+
 $dashboardConfig = function_exists('getDashboardConfig') ? getDashboardConfig() : ['demo_mode' => false, 'show_badges' => false, 'show_alert' => false];
 $alertas = definir_alertas($campanhas, $LIMITES);
 

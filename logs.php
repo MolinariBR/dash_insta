@@ -2,7 +2,27 @@
 require_once 'config.php';
 $pageTitle = 'Logs do Sistema';
 require_once 'includes/header.php';
+
+// Buscar contas do Instagram disponíveis
+function getDB() {
+    $db = new PDO('sqlite:data/database.db');
+    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    return $db;
+}
+$db = getDB();
+$contas = $db->query('SELECT ci.id, ci.username, c.nome as cliente_nome FROM contas_instagram ci JOIN clientes c ON ci.cliente_id = c.id ORDER BY c.nome, ci.username')->fetchAll(PDO::FETCH_ASSOC);
+$conta_id = isset($_GET['conta_id']) ? (int)$_GET['conta_id'] : ($contas[0]['id'] ?? null);
 ?>
+<div class="mb-4">
+    <form method="get" class="flex flex-col md:flex-row items-center gap-2">
+        <label class="font-semibold">Conta do Instagram:</label>
+        <select name="conta_id" onchange="this.form.submit()" class="border p-2 rounded">
+            <?php foreach ($contas as $c): ?>
+                <option value="<?= $c['id'] ?>" <?= $conta_id == $c['id'] ? 'selected' : '' ?>>@<?= htmlspecialchars($c['username']) ?> (<?= htmlspecialchars($c['cliente_nome']) ?>)</option>
+            <?php endforeach; ?>
+        </select>
+    </form>
+</div>
 
 <div class="container mx-auto px-4 py-6">
     <!-- Header -->
@@ -190,10 +210,10 @@ document.addEventListener('DOMContentLoaded', function() {
 function loadLogs() {
     const logType = document.getElementById('log-type').value;
     const loading = document.getElementById('loading');
-    
+    const contaId = document.querySelector('select[name=conta_id]').value;
     loading.classList.remove('hidden');
     
-    fetch(`api/logs.php?type=${logType}&limit=1000`)
+    fetch(`api/logs.php?type=${logType}&limit=1000&conta_id=${contaId}`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
